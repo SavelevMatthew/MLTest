@@ -1,11 +1,11 @@
 from tensorflow.keras.datasets import fashion_mnist
-from tensorflow.keras.models import Sequential, load_model
-from tensorflow.keras.layers import Dense
+from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing import image
 from tensorflow.keras import utils
 from PIL import Image
 from io import BytesIO
-from FashionMNIST.colors import Colors
+from utils.colors import Colors
+from utils.functions import build_sequential_model, is_model_exist
 import numpy as np
 import os
 import requests
@@ -27,12 +27,9 @@ def train():
     y_test = utils.to_categorical(y_test, 10)
 
     # Создание модели
-    new_model = Sequential()
-    new_model.add(Dense(800, activation='relu', input_dim=784))
-    new_model.add(Dense(10, activation='softmax'))
-    # Сборка модели
-    new_model.compile('SGD', loss='categorical_crossentropy',
-                      metrics=['accuracy'])
+    new_model = build_sequential_model([784, 800, 10], 'SGD',
+                                       'categorical_crossentropy',
+                                       ['accuracy'], 'softmax')
     # Вывод показателей модели
     print(new_model.summary())
     # Обучение модели
@@ -52,10 +49,9 @@ def train():
 
 
 if __name__ == '__main__':
-    if os.path.exists(os.path.join(os.getcwd(), 'fashion_mnist.h5')):
-        model = load_model('fashion_mnist.h5')
-    else:
-        model = train()
+    model = load_model('fashion_mnist.h5') \
+        if is_model_exist(os.getcwd, 'fashion_mnist.h5') \
+        else train()
 
     classes = ['T-Shirt', 'Trousers', 'Sweater', 'Dress', 'Coat',
                'Shoes', 'Shirt', 'Sneakers', 'Bag', 'Boots']
@@ -84,10 +80,5 @@ if __name__ == '__main__':
 
         prediction = model.predict(x)
         class_number = int(np.argmax(prediction))
-        print(f"Net thinks that {c.OK_GREEN}{c.UNDERLINE}{c.BOLD}{classes[class_number]}{c.END_C} is on image!")
-
-
-
-
-
-
+        print(f"Net thinks that {c.OK_GREEN}{c.UNDERLINE}{c.BOLD}"
+              f"{classes[class_number]}{c.END_C} is on image!")
